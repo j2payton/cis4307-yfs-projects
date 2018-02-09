@@ -351,14 +351,18 @@ tcpsconn::process_accept()
 	connection *ch = new connection(mgr_, s1, lossy_);
 
         // garbage collect all dead connections with refcount of 1
+	//Payton on 2-9-18: fixed problem with garbage collection ref counter
         std::map<int, connection *>::iterator i;
         for (i = conns_.begin(); i != conns_.end(); i++) {
                 if (i->second->isdead() && i->second->ref() == 1) {
 			jsl_log(JSL_DBG_2, "accept_loop garbage collected fd=%d\n",
 					i->second->channo());
                         i->second->decref();
-                        conns_.erase(i);
-                }
+                        conns_.erase(i++);
+                } else {
+			++i;
+		}
+		
         }
 
 	conns_[ch->channo()] = ch;
